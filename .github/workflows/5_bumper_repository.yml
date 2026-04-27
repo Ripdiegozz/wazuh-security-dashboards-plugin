@@ -54,25 +54,10 @@ jobs:
         run: |
           cat $GITHUB_EVENT_PATH | jq '.inputs'
 
-      - name: Set up GPG key
-        id: signing_setup
-        run: |
-          echo "${{ env.CI_GPG_PRIVATE_KEY }}" | gpg --batch --import
-          KEY_ID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/ {print $5; exit}')
-          echo "gpg_key_id=$KEY_ID" >> $GITHUB_OUTPUT
-
       - name: Set up git
         run: |
           git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
           git config --global user.email "${{ env.CI_COMMIT_EMAIL }}"
-          git config --global commit.gpgsign true
-          git config --global user.signingkey "${{ steps.signing_setup.outputs.gpg_key_id }}"
-          echo "use-agent" >> ~/.gnupg/gpg.conf
-          echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
-          echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
-          echo RELOADAGENT | gpg-connect-agent
-          export DEBIAN_FRONTEND=noninteractive
-          export GPG_TTY=$(tty)
 
       - name: Checkout repository
         uses: actions/checkout@v4
